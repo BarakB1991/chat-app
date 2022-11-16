@@ -15,21 +15,23 @@ HARPERDB_PW="YOUR-PASS-FROM-HARPERDB"
 HARPERDB_URL="YOUR-DOMAIN"
 ````
 
-back at the HarperDB website, click on the instance you created
-click browse
-click on the plus button to the schemas
-create a schema named `realtime_chat_app`
-then click on plus button next to tables
-name: `messages` hash attr.: `id`
+Back at the HarperDB website, click on the instance you created
+Click browse
+Click on the plus button to the schemas
+Create a schema named `realtime_chat_app`
+Click on plus button next to tables
+Name: `messages` hash attr.: `id`
 
-that's it. you have the database running and waiting to recieve messages and store them. 
+That's it. you have the database running and waiting to recieve messages and store them. 
 
-### installing dependencies
+### installing dependencies and running locally
 
-run this in root directory of repo:
+Run this in root directory of repo:
 ```bash
 npm i
-npm start
+npm run frontend
+
+npm run api // other terminal
 ```
 
 Have fun
