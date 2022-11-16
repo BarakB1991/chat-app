@@ -2,13 +2,8 @@ import styles from './Chat.module.css';
 import RoomAndUsers from './Room-And-Users';
 import MessagesReceived from './Messages';
 import SendMessage from './Send-Message';
-import { useEffect } from 'react';
 
 const Chat = ({ socket, username, room }) => {
-  useEffect(() => {
-    return () => {};
-  }, []);
-
   return (
     <div className={styles.chatContainer}>
       <RoomAndUsers socket={socket} username={username} room={room} />

@@ -59,16 +59,19 @@
   max-width: 600px;
   padding: 12px;
 }
+
 .msgMeta {
   color: rgb(153, 217, 234);
   font-size: 0.75rem;
 }
+
 .msgText {
   color: #fff;
 }
 
 .sendMessageContainer {
   padding: 16px 20px 20px 16px;
+  position: relative;
 }
 
 .messageInput {
@@ -78,6 +81,19 @@
   border-radius: 6px;
   border: 1px solid rgb(153, 217, 234);
   font-size: 0.9rem;
+}
+
+.isTyping {
+  position: absolute;
+  top: -40px;
+  visibility: visible;
+  color: rgb(54, 61, 144);
+}
+
+.isTypingHidden {
+  position: absolute;
+  top: -50px;
+  visibility: hidden;
 }
 
 @media screen and (max-width: 720px) {

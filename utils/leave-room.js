@@ -1,5 +1,5 @@
-function leaveRoom(userID, chatRoomUsers) {
+function removeUser(userID, chatRoomUsers) {
   return chatRoomUsers.filter((user) => user.id != userID);
 }
 
-module.exports = leaveRoom;
+module.exports = removeUser;

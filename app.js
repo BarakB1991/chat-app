@@ -8,7 +8,7 @@ const cors = require('cors');
 const { Server } = require('socket.io');
 const harperSaveMessage = require('./services/harper-save-message');
 const harperGetMessages = require('./services/harper-get-messages');
-const leaveRoom = require('./utils/leave-room');
+const removeUser = require('./utils/leave-room');
 
 const {
   PORT,
@@ -16,6 +16,7 @@ const {
   HARPERDB_PW,
   CHAT_BOT,
 } = require('./utils/constants');
+const checkForUser = require('./utils/check-for-user');
 
 app.use(cors());
 
@@ -23,18 +24,22 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: 'https://localhost:3000',
+    origin: 'http://localhost:3000',
     methods: ['GET', 'POST'],
   },
 });
 
 let chatRoom = '';
 let allUsers = [];
+let currentlyTypingUsers = [];
 
+// Serve static page
 app.use(express.static(path.join(__dirname, 'client', 'build')));
+
 // Listen for client connecting via socket.io-client
 io.on('connection', (socket) => {
   console.log(`User connected ${socket.id}`);
+
   // Add a user to a room
   socket.on('join_room', (data) => {
     const { username, room } = data;
@@ -82,13 +87,38 @@ io.on('connection', (socket) => {
       .catch((err) => console.log(err));
   });
 
+  socket.on('user_typing', (data) => {
+    const { username, room, __createdtime__ } = data;
+    const userAlreadyTyping = checkForUser(socket.id, currentlyTypingUsers);
+
+    if (userAlreadyTyping) {
+      return;
+    }
+
+    currentlyTypingUsers.push({
+      id: socket.id,
+      username,
+      room,
+      // __createdtime__,
+    });
+
+    socket.to(room).emit('chatroom_typers', currentlyTypingUsers);
+  });
+
+  socket.on('user_stop_typing', (data) => {
+    const { username, room, __createdtime__ } = data;
+    currentlyTypingUsers = removeUser(socket.id, currentlyTypingUsers);
+
+    socket.to(room).emit('chatroom_typers', currentlyTypingUsers);
+  });
+
   socket.on('leave_room', (data) => {
     const { username, room } = data;
     socket.leave(room);
     const __createdtime__ = Date.now();
 
     // Remove user from memory
-    allUsers = leaveRoom(socket.id, allUsers);
+    allUsers = removeUser(socket.id, allUsers);
     socket.to(room).emit('chatroom_users', allUsers);
     socket.to(room).emit('receive_message', {
       username: CHAT_BOT,
@@ -102,7 +132,7 @@ io.on('connection', (socket) => {
     console.log('User disconnected from the chat');
     const user = allUsers.find((user) => user.id == socket.id);
     if (user?.username) {
-      allUsers = leaveRoom(socket.id, allUsers);
+      allUsers = removeUser(socket.id, allUsers);
       socket.to(chatRoom).emit('chatroom_users', allUsers);
       socket.to(chatRoom).emit('receive_message', {
         message: `${user.username} has disconnected from the chat.`,
