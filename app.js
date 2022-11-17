@@ -38,7 +38,7 @@ app.use(express.static(path.join(__dirname, 'client', 'build')));
 
 // Listen for client connecting via socket.io-client
 io.on('connection', (socket) => {
-  console.log(`User connected ${socket.id}`);
+  console.log(`${socket.id} connected`);
 
   // Add a user to a room
   socket.on('join_room', (data) => {
@@ -91,9 +91,7 @@ io.on('connection', (socket) => {
     const { username, room, __createdtime__ } = data;
     const userAlreadyTyping = checkForUser(socket.id, currentlyTypingUsers);
 
-    if (userAlreadyTyping) {
-      return;
-    }
+    if (userAlreadyTyping) return;
 
     currentlyTypingUsers.push({
       id: socket.id,
@@ -131,8 +129,11 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => {
     console.log('User disconnected from the chat');
     const user = allUsers.find((user) => user.id == socket.id);
+    console.log(`${socket.id} disconnected`);
     if (user?.username) {
+      currentlyTypingUsers = removeUser(socket.id, currentlyTypingUsers);
       allUsers = removeUser(socket.id, allUsers);
+      socket.to(chatRoom).emit('chatroom_typers', currentlyTypingUsers);
       socket.to(chatRoom).emit('chatroom_users', allUsers);
       socket.to(chatRoom).emit('receive_message', {
         message: `${user.username} has disconnected from the chat.`,

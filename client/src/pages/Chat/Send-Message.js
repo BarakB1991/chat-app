@@ -5,8 +5,8 @@ import React from 'react';
 
 const SendMessage = ({ socket, username, room }) => {
   const [message, setMessage] = useState('');
-  // const [isTyping, setIsTyping] = useState(false);
   const [currentlyTypingUsers, setCurrentlyTypingUsers] = useState([]);
+  const [typingUsers, setTypingUsers] = useState('');
 
   useEffect(() => {
     if (message.length > 0) {
@@ -20,12 +20,13 @@ const SendMessage = ({ socket, username, room }) => {
 
   useEffect(() => {
     socket.on('chatroom_typers', (data) => {
-      console.log(data);
-      setCurrentlyTypingUsers(data);
+      let users;
+      users = data.map((item) => item.username);
+      console.log(users);
+      setCurrentlyTypingUsers(users);
     });
 
     return () => {
-      console.log('remove typing');
       socket.off('chatroom_typers');
     };
   }, [socket]);
@@ -48,21 +49,35 @@ const SendMessage = ({ socket, username, room }) => {
   const handleUserTypingEvent = (e) => {
     setMessage(e.target.value);
   };
+  //  Render users typing
 
-  // const typers
-  /*
-    HANDLE TYPING
-    1.user start typing inside input.
-    because of that, an event is sent to server
-    user gets added to array currentlyTypingUsers.
-    server emits array to room that the users is typing: 
-    "User is typing..." \ "Usera and Userb are typing" \ "Usera and Userb and {number of adittional users} are typing"
-  
-    2. user stops typing.
-    data sent to server, and user is removed from currentlyTypingUsers array
-    array is broadcast to everyone
-  
-  */
+  useEffect(() => {
+    if (currentlyTypingUsers.length === 0)
+      return setTypingUsers(currentlyTypingUsers);
+
+    let typingUsers = currentlyTypingUsers;
+    console.log(typingUsers);
+    typingUsers.filter((user) => user === username);
+
+    console.log(typingUsers);
+    if (typingUsers.length <= 3) {
+      typingUsers = typingUsers.slice(0, 3);
+    } else {
+      typingUsers = typingUsers.slice(0, 2);
+      typingUsers.push(`and ${currentlyTypingUsers.length - 2} more`);
+    }
+
+    console.log(typingUsers);
+
+    const endStatement =
+      typingUsers.length === 1 ? ' is typing' : ' are typing';
+
+    typingUsers = typingUsers.map((user) => ' ' + user);
+
+    typingUsers.push(endStatement);
+
+    setTypingUsers(typingUsers);
+  }, [currentlyTypingUsers, socket]);
 
   return (
     <div className={styles.sendMessageContainer}>
@@ -75,12 +90,10 @@ const SendMessage = ({ socket, username, room }) => {
         onKeyUp={(e) => handleEnterKeyUp(e)}
       />
       <p
-        className={
-          currentlyTypingUsers.length === 0
-            ? styles.isTypingHidden
-            : styles.isTyping
-        }
-      ></p>
+        className={typingUsers === '' ? styles.isTypingHidden : styles.isTyping}
+      >
+        {typingUsers}
+      </p>
       <button
         type='submit'
         className='btn btn-primary btn-small'

@@ -10,7 +10,7 @@ const socket = io.connect('http://localhost:8000'); // development socket
 
 function App() {
   const [username, setUsername] = useState('');
-  const [room, setRoom] = useState('');
+  const [room, setRoom] = useState('javascript');
 
   return (
     <Router>
